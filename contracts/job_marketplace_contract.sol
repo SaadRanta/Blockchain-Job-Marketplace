@@ -288,6 +288,40 @@ contract JobMarketplace {
         seeker.skills = _skills;
     }
 
+    function getJobSeeker(address _addr) public view returns (
+    string memory name,
+    string memory contactInfo,
+    string memory resumeHash,
+    string[] memory skills,
+    bool isActive
+) {
+    JobSeeker storage js = jobSeekers[_addr];
+    return (
+        js.name,
+        js.contactInfo,
+        js.resumeHash,
+        js.skills,
+        js.isActive
+    );
+}
+function getEmployer(address _addr) public view returns (
+    string memory companyName,
+    string memory industry,
+    string memory contactInfo,
+    string memory description,
+    bool isActive
+) {
+    Employer storage emp = employers[_addr];
+    return (
+        emp.companyName,
+        emp.industry,
+        emp.contactInfo,
+        emp.description,
+        emp.isActive
+    );
+}
+
+
     /**
      * @dev Update employer profile
      * @param _companyName Name of the company

@@ -1,19 +1,19 @@
-const hre = require("hardhat");
-
+// scripts/deploy.js
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
+
   console.log("Deploying contracts with:", deployer.address);
 
-  const JobMarketplace = await hre.ethers.getContractFactory("JobMarketplace");
+  const JobMarketplace = await ethers.getContractFactory("JobMarketplace");
   const contract = await JobMarketplace.deploy();
-  await contract.deployed();
 
-  console.log(`JobMarketplace deployed at: ${contract.address}`);
+  await contract.waitForDeployment(); // ✅ Correct for Hardhat + Ethers v6
+
+  const address = await contract.getAddress();
+  console.log("Contract deployed at:", address);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

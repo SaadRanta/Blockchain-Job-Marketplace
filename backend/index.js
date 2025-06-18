@@ -38,9 +38,16 @@ app.post('/register-employer', async (req, res) => {
 app.post('/register-job-seeker', async (req, res) => {
   try {
     const { name, contactInfo, resumeHash, skills } = req.body;
+    
+    // Convert skills string to array if it's not already an array
+    const skillsArray = Array.isArray(skills) 
+      ? skills 
+      : skills.split(',').map(skill => skill.trim());
+    
     const receipt = await contract.methods
-      .registerJobSeeker(name, contactInfo, resumeHash, skills)
+      .registerJobSeeker(name, contactInfo, resumeHash, skillsArray)
       .send({ from: defaultAccount });
+      
     res.status(200).json({ message: 'Job seeker registered', receipt });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -51,8 +58,11 @@ app.post('/register-job-seeker', async (req, res) => {
 app.post('/post-job', async (req, res) => {
   try {
     const { title, description, requiredSkills, location, salary } = req.body;
+        const skillsArray = Array.isArray(requiredSkills) 
+      ? requiredSkills 
+      : requiredSkills.split(',').map(requiredSkills => requiredSkills.trim());
     const receipt = await contract.methods
-      .postJob(title, description, requiredSkills, location, salary)
+      .postJob(title, description, skillsArray, location, salary)
       .send({ from: defaultAccount });
     res.status(200).json({ message: 'Job posted!', receipt });
   } catch (error) {
