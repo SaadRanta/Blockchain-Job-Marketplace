@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 
 const JobMarketplace = () => {
+  const [isConnected, setIsConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
   const [activeTab, setActiveTab] = useState('registerJobSeeker');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -14,6 +15,61 @@ const JobMarketplace = () => {
   const showError = (err) => {
     setError(err);
     setTimeout(() => setError(''), 3000);
+  };
+
+  // Real MetaMask connection
+  const connectWallet = async () => {
+    try {
+      // Check if MetaMask is installed
+      if (typeof window.ethereum === 'undefined') {
+        showError('MetaMask is not installed. Please install MetaMask to continue.');
+        return;
+      }
+
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
+      if (accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setIsConnected(true);
+        showMessage('Wallet connected successfully!');
+        
+        // Listen for account changes
+        window.ethereum.on('accountsChanged', (accounts) => {
+          if (accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+          } else {
+            disconnectWallet();
+          }
+        });
+
+        // Listen for chain changes
+        window.ethereum.on('chainChanged', () => {
+          window.location.reload();
+        });
+      }
+    } catch (err) {
+      if (err.code === 4001) {
+        showError('Connection rejected by user');
+      } else {
+        showError('Failed to connect wallet: ' + err.message);
+      }
+    }
+  };
+
+  const disconnectWallet = () => {
+    setIsConnected(false);
+    setWalletAddress('');
+    
+    // Remove event listeners
+    if (window.ethereum && window.ethereum.removeListener) {
+      window.ethereum.removeListener('accountsChanged', () => {});
+      window.ethereum.removeListener('chainChanged', () => {});
+    }
+    
+    showMessage('Wallet disconnected');
   };
 
   // Register Job Seeker Component
@@ -32,13 +88,13 @@ const JobMarketplace = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post('http://localhost:5000/register-job-seeker', {
-          ...formData,
-          skills: formData.skills.split(',').map(skill => skill.trim()),
-        });
-        showMessage(response.data.message);
+        // Simulate API call
+        setTimeout(() => {
+          showMessage('Job seeker registered successfully!');
+          setFormData({ name: '', contactInfo: '', resumeHash: '', skills: '' });
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error registering job seeker');
+        showError('Error registering job seeker');
       }
     };
 
@@ -89,10 +145,12 @@ const JobMarketplace = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post('http://localhost:5000/register-employer', formData);
-        showMessage(response.data.message);
+        setTimeout(() => {
+          showMessage('Employer registered successfully!');
+          setFormData({ companyName: '', industry: '', contactInfo: '', description: '' });
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error registering employer');
+        showError('Error registering employer');
       }
     };
 
@@ -150,14 +208,12 @@ const JobMarketplace = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post('http://localhost:5000/post-job', {
-          ...formData,
-          requiredSkills: formData.requiredSkills.split(',').map(skill => skill.trim()),
-          salary: parseInt(formData.salary),
-        });
-        showMessage(response.data.message);
+        setTimeout(() => {
+          showMessage('Job posted successfully!');
+          setFormData({ title: '', description: '', requiredSkills: '', location: '', salary: '' });
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error posting job');
+        showError('Error posting job');
       }
     };
 
@@ -229,13 +285,12 @@ const JobMarketplace = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post('http://localhost:5000/apply-job', {
-          ...formData,
-          jobId: parseInt(formData.jobId),
-        });
-        showMessage(response.data.message);
+        setTimeout(() => {
+          showMessage('Application submitted successfully!');
+          setFormData({ jobId: '', coverLetterHash: '' });
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error applying for job');
+        showError('Error applying for job');
       }
     };
 
@@ -278,11 +333,18 @@ const JobMarketplace = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.get(`http://localhost:5000/job-applications/${jobId}`);
-        setApplications(response.data.applications);
-        showMessage('Applications fetched successfully');
+        // Simulate fetching applications
+        const dummyApplications = [
+          { jobSeeker: '0x123...abc', status: 'Pending', applicationTime: Date.now() / 1000 },
+          { jobSeeker: '0x456...def', status: 'Reviewed', applicationTime: Date.now() / 1000 - 86400 },
+          { jobSeeker: '0x789...ghi', status: 'Approved', applicationTime: Date.now() / 1000 - 172800 },
+        ];
+        setTimeout(() => {
+          setApplications(dummyApplications);
+          showMessage('Applications fetched successfully');
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error fetching applications');
+        showError('Error fetching applications');
       }
     };
 
@@ -326,11 +388,14 @@ const JobMarketplace = () => {
 
     const handleSubmit = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/my-applications');
-        setJobIds(response.data.jobIds);
-        showMessage('Applications fetched successfully');
+        // Simulate fetching user's applications
+        const dummyJobIds = [1, 3, 7, 12, 15];
+        setTimeout(() => {
+          setJobIds(dummyJobIds);
+          showMessage('Applications fetched successfully');
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error fetching my applications');
+        showError('Error fetching my applications');
       }
     };
 
@@ -373,13 +438,11 @@ const JobMarketplace = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.put('http://localhost:5000/update-job-seeker', {
-          ...formData,
-          skills: formData.skills.split(',').map(skill => skill.trim()),
-        });
-        showMessage(response.data.message);
+        setTimeout(() => {
+          showMessage('Job seeker profile updated successfully!');
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error updating job seeker profile');
+        showError('Error updating job seeker profile');
       }
     };
 
@@ -430,10 +493,11 @@ const JobMarketplace = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.put('http://localhost:5000/update-employer', formData);
-        showMessage(response.data.message);
+        setTimeout(() => {
+          showMessage('Employer profile updated successfully!');
+        }, 500);
       } catch (error) {
-        showError(error.response?.data?.error || 'Error updating employer profile');
+        showError('Error updating employer profile');
       }
     };
 
@@ -474,11 +538,68 @@ const JobMarketplace = () => {
     );
   };
 
+  // If not connected, show connection screen
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-gray-200">
+        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-2xl text-center">
+          <div className="mb-8">
+            <div className="w-20 h-20 bg-orange-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18-.717-.717-1.254-1.434-1.434C14.897 6.5 12 6.5 12 6.5s-2.897 0-4.128.227c-.717.18-1.254.717-1.434 1.434C6.211 9.392 6.211 12 6.211 12s0 2.608.227 3.839c.18.717.717 1.254 1.434 1.434C9.103 17.5 12 17.5 12 17.5s2.897 0 4.128-.227c.717-.18 1.254-.717 1.434-1.434C17.789 14.608 17.789 12 17.789 12s0-2.608-.227-3.839zM10.5 14.598V9.402L14.598 12 10.5 14.598z"/>
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Job Marketplace</h1>
+            <p className="text-gray-600 mb-4">Connect your MetaMask wallet to access the platform</p>
+            {typeof window !== 'undefined' && typeof window.ethereum === 'undefined' && (
+              <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+                <p className="text-sm">MetaMask is not detected. Please install MetaMask extension first.</p>
+                <a 
+                  href="https://metamask.io/download/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline text-sm"
+                >
+                  Download MetaMask
+                </a>
+              </div>
+            )}
+          </div>
+          
+          <button
+            onClick={connectWallet}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-3"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            Connect MetaMask
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-6 md:p-10 bg-gradient-to-br from-gray-50 to-gray-200">
-      <h1 className="text-4xl font-extrabold text-center mb-8 text-gray-800 tracking-tight">
-        Job Marketplace
-      </h1>
+      {/* Header with wallet info */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-extrabold text-gray-800 tracking-tight">
+          Job Marketplace
+        </h1>
+        <div className="flex items-center gap-4">
+          <div className="bg-white px-4 py-2 rounded-lg shadow-md">
+            <p className="text-sm text-gray-600">Connected:</p>
+            <p className="font-mono text-sm text-gray-800">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</p>
+          </div>
+          <button
+            onClick={disconnectWallet}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200"
+          >
+            Disconnect
+          </button>
+        </div>
+      </div>
       
       {/* Navigation Tabs */}
       <div className="flex flex-wrap justify-center gap-3 mb-8">
